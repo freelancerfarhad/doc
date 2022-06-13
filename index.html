@@ -1,0 +1,155 @@
+
+{{-- project create korar jonno commant holo... --}}
+composer create-project laravel/laravel blog
+ cd blog
+php artisan serve
+
+{{-- authentication system setup --}}
+composer require laravel/ui
+
+ {{-- Generate login / registration scaffolding... --}}
+ php artisan ui bootstrap
+php artisan ui vue
+php artisan ui react
+php artisan ui bootstrap --auth
+php artisan ui vue --auth
+php artisan ui react --auth
+
+npm install
+npm run dev
+
+{{-- user table create and database create --}}
+php artisan make:model user -a
+php artisan make:model role -m
+
+{{-- then join query --}}
+{{-- user model --}}
+public function role()
+{
+    return $this->belongsTo(Role::class);
+}
+use App\Models\Role;
+
+$table->bigIncrements('id');
+$table->integer('role_id')->default(2);
+$table->string('name');
+$table->string('email')->unique();
+$table->string('username')->unique();
+$table->timestamp('email_verified_at')->nullable();
+$table->string('password');
+$table->string('image')->default('avater5.png');
+$table->text('about')->nullable();
+$table->rememberToken();
+$table->timestamps();
+
+{{-- role table by database --}}
+{{-- role model --}}
+public function users()
+{
+    return $this->hasMany(User::class);
+}
+use App\Models\User;
+
+$table->bigIncrements('id');
+$table->string('name');
+$table->string('slug');
+$table->timestamps();
+
+{{-- user and role data save korar jonno seeder create --}}
+{{-- user seeder --}}
+php artisan make:seeder UserSeeder
+DB::table('users')->insert([
+    'role_id'=>'1',
+    'name'=>'Admin',
+    'username'=>'admin',
+    'email'=>'admin@gmail.com',
+    'password'=>bcrypt('admin123'),
+]);
+
+DB::table('users')->insert([
+    'role_id'=>'2',
+    'name'=>'Author',
+    'username'=>'author',
+    'email'=>'author@gmail.com',
+    'password'=>bcrypt('author123'),
+]);
+
+{{-- role seeder --}}
+php artisan make:seeder RoleSeeder
+DB::table('roles')->insert([
+    'name'=>'Admin',
+    'slug'=>'admin',
+]);
+
+DB::table('roles')->insert([
+    'name'=>'Author',
+    'slug'=>'author',
+]);
+
+{{-- ar por seeder ar main file a include korte hobe --}}
+$this->call(UserSeeder::class);
+ $this->call(RoleSeeder::class);
+
+ php artisan migrate
+{{-- project ar scafolding finished --}}
+{{-- akhon role assign korar jonno middleware create korte hobe --}}
+{{-- adminmiddle --}}
+php artisan make:middleware AdminMiddleware
+if(Auth::check() && Auth::user()->role->id==1){
+    return $next($request);
+}else{
+    return redirect()->route('login');
+}
+use Illuminate\Support\Facades\Auth;
+{{-- Authormiddle --}}
+php artisan make:middleware AuthorMiddleware
+if(Auth::check() && Auth::user()->role->id==2){
+    return $next($request);
+}else{
+    return redirect()->route('login');
+}
+use Illuminate\Support\Facades\Auth;
+{{-- kernel.php file a register korte hobe --}}
+
+{{-- akhon middleware ar maje RedirectIfAuthentication file ace then hit --}}
+if(Auth::guard($guards)->check() && Auth::user()->role->id==1){
+    return redirect()->route('admin.dashboard');
+}elseif(Auth::guard($guards)->check() && Auth::user()->role->id==2){
+    return redirect()->route('author.dashboard');
+}else{
+    return $next($request);
+}
+use Illuminate\Support\Facades\Auth;
+
+{{-- then logincontroller hit --}}
+protected function redirectTo(){
+        
+    if(Auth::check() && Auth::user()->role->id==1){
+    return route('admin.dashboard');
+}elseif(Auth::check() && Auth::user()->role->id==2){
+    return route('author.dashboard');
+}
+}
+use Illuminate\Support\Facades\Auth;
+
+{{-- then controller create  --}}
+php artisan make:controller Admin/AdminDashboardController -r
+php artisan make:controller Admin/AuthorDashboardController -r
+
+{{-- then route create  --}}
+Route::group(['prefix'=>'admin','middleware'=>['admin','auth'],'namespace'=>'admin'],function(){
+
+    Route::get('dashboard',[AdminDashboardController::class,'index'])->name('admin.dashboard');
+
+});
+
+//__group_route_by_author__/
+
+Route::group(['prefix'=>'author','middleware'=>['author','auth'],'namespace'=>'author'],function(){
+
+    
+    Route::get('dashboard',[DashboardController::class,'index'])->name('author.dashboard');
+
+});
+
+{{-- then run to chorom --}}
