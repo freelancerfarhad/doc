@@ -73,7 +73,7 @@ DB::table('users')->insert([
     'email'=>'author@gmail.com',
     'password'=>bcrypt('author123'),
 ]);
-
+{{--DB add korte home--}}
 {{-- role seeder --}}
 php artisan make:seeder RoleSeeder
 DB::table('roles')->insert([
@@ -85,12 +85,12 @@ DB::table('roles')->insert([
     'name'=>'Author',
     'slug'=>'author',
 ]);
-
+{{--DB add korte home--}}
 {{-- ar por seeder ar main file a include korte hobe --}}
 $this->call(UserSeeder::class);
  $this->call(RoleSeeder::class);
 
- php artisan migrate
+ php artisan db:seed
 {{-- project ar scafolding finished --}}
 {{-- akhon role assign korar jonno middleware create korte hobe --}}
 {{-- adminmiddle --}}
